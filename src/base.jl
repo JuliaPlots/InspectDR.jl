@@ -69,6 +69,8 @@ mutable struct Waveform{T}
 	glyph::GlyphAttributes
 	ext::PExtents2D
 	strip::UInt8 #Y-strip
+	visible::Bool
+	legendbb::BoundingBox
 end
 
 #Input waveform:
@@ -360,7 +362,7 @@ function _add(plot::Plot2D, x::Vector, y::Vector; id::String="", dataf1=true, st
 		dataf1 = isincreasing(x) #Can we use optimizations?
 	end
 	ext = PExtents2D() #Don't care at the moment
-	ds = IWaveform(id, IDataset{dataf1}(x, y), line(), glyph(), ext, strip)
+	ds = IWaveform(id, IDataset{dataf1}(x, y), line(), glyph(), ext, strip, true, BoundingBox(-1,-1,-1,-1))
 	push!(plot.data, ds)
 	return ds
 end
@@ -579,7 +581,7 @@ function _reduce(input::IWaveform, xext::PExtents1D, pdm::PointDropMatrix, xres_
 	ds = droppoints(pdm, hasline(input), hasglyph(input)) ?
 		_reduce(input.ds, xext, xres_max) : _reduce_nodrop(input.ds, xext, xres_max)
 
-	return DWaveform(input.id, ds, input.line, input.glyph, input.ext, input.strip)
+	return DWaveform(input.id, ds, input.line, input.glyph, input.ext, input.strip, input.visible, input.legendbb)
 end
 
 _reduce(inputlist::Vector{IWaveform}, xext::PExtents1D, pdm::PointDropMatrix, xres_max::Integer) =
@@ -593,7 +595,7 @@ map2axis(input::T, x::InputXfrm1DSpec, y::InputXfrm1DSpec) where T<:IDataset =
 
 function map2axis(input::IWaveform, x::InputXfrm1DSpec, y::InputXfrm1DSpec)
 	ds = map2axis(input.ds, x, y)
-	return IWaveform(input.id, ds, input.line, input.glyph, getextents(ds), input.strip)
+	return IWaveform(input.id, ds, input.line, input.glyph, getextents(ds), input.strip, input.visible, input.legendbb)
 end
 
 function map2axis(inputlist::Vector{IWaveform}, xflist::Vector{InputXfrm2D})
@@ -608,7 +610,7 @@ function map2axis(inputlist::Vector{IWaveform}, xflist::Vector{InputXfrm2D})
 		if strip > 0 && strip <= nstrips
 			result[i] = map2axis(input, xflist[strip].x, xflist[strip].y)
 		else #No scale for this strip... return empty waveform
-			result = IWaveform(input.id, emptyds, input.line, input.glyph, PExtents2D(), strip)
+			result = IWaveform(input.id, emptyds, input.line, input.glyph, PExtents2D(), strip, input.visible, input.legendbb)
 		end
 	end
 	return result

@@ -111,7 +111,7 @@ function drawglyph(ctx::CairoContext, g::GlyphCircle, pt::Point2D, size::DReal, 
 end
 
 #Correctly displays a glyph, given wfrm properties.
-function drawglyph_safe(ctx::CairoContext, wfrm::DWaveform, pt::Point2D)
+function drawglyph_safe(ctx::CairoContext, wfrm::IWaveform, pt::Point2D)
 	_glyph = Glyph(wfrm.glyph.shape)
 	if nothing == _glyph; return; end
 
@@ -388,6 +388,7 @@ function render(canvas::PCanvas2D, wfrm::DWaveform)
 	ds = wfrm.ds #WANTCONST
 
 	if length(ds) < 1; return; end
+	if !wfrm.visible; return; end
 
 if hasline(wfrm)
 	setlinestyle(ctx, LineStyle(wfrm.line))

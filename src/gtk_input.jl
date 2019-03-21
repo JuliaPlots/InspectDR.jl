@@ -130,6 +130,13 @@ function handleevent_mousepress(::ISNormal, pwidget::PlotWidget, event::Gtk.GdkE
 			handleevent_mousepress(pwidget, CtrlElement, event.x, event.y)
 		end
 	end
+	series = pwidget.src.data
+	for s in series
+		if isinside(s.legendbb, event.x, event.y)
+			s.visible = !s.visible
+			refresh(pwidget,refreshdata=true)
+		end
+	end
 end
 
 
